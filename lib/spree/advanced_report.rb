@@ -37,7 +37,9 @@ module Spree
 
       search = Order.search(params[:search])
       # self.orders = search.state_does_not_equal('canceled')
-      self.orders = search.result
+      # Remove orders that haven't reached the completed stage. Done here since pg throws an error when querying != '' on 
+      # a timestamp column, but other dbs (e.g. sqlite) might have a '' for the created_at column
+      self.orders = search.result.select {|order| !order.completed_at.blank?}
 
       self.product_in_taxon = true
       if params[:advanced_reporting]
